@@ -196,10 +196,19 @@
     <div id="tab-my" class="tab-content active">
       <div id="spinner-my" class="spinner">Fetching data…</div>
       <div class="table-wrap">
-        <table><thead><tr>
-          <th>#</th><th>Stock Code</th><th>Company Name</th><th>Action Type</th><th>Ex-Date</th><th>Details</th>
-        </tr></thead>
-        <tbody id="body-my"><tr><td colspan="7" class="no-data">Press Refresh to load data</td></tr></tbody>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Stock Code</th>
+              <th>Company Name</th>
+              <th>Exchange</th>
+              <th>Ex-Date</th>
+              <th>Corporate Action Type</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="body-my"><tr><td colspan="7" class="no-data">Press Refresh to load data</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -208,10 +217,19 @@
     <div id="tab-sg" class="tab-content">
       <div id="spinner-sg" class="spinner">Fetching data…</div>
       <div class="table-wrap">
-        <table><thead><tr>
-          <th>#</th><th>Stock Code</th><th>Company Name</th><th>Action Type</th><th>Ex-Date</th><th>Details</th>
-        </tr></thead>
-        <tbody id="body-sg"><tr><td colspan="7" class="no-data">Press Refresh to load data</td></tr></tbody>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Stock Code</th>
+              <th>Company Name</th>
+              <th>Exchange</th>
+              <th>Ex-Date</th>
+              <th>Corporate Action Type</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="body-sg"><tr><td colspan="7" class="no-data">Press Refresh to load data</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -220,10 +238,19 @@
     <div id="tab-us" class="tab-content">
       <div id="spinner-us" class="spinner">Fetching data…</div>
       <div class="table-wrap">
-        <table><thead><tr>
-          <th>#</th><th>Stock Code</th><th>Company Name</th><th>Action Type</th><th>Ex-Date</th><th>Details</th>
-        </tr></thead>
-        <tbody id="body-us"><tr><td colspan="7" class="no-data">Press Refresh to load data</td></tr></tbody>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Stock Code</th>
+              <th>Company Name</th>
+              <th>Exchange</th>
+              <th>Ex-Date</th>
+              <th>Corporate Action Type</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="body-us"><tr><td colspan="7" class="no-data">Press Refresh to load data</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -262,10 +289,10 @@
   }
 
   // ── Render table ──
-  function renderTable(bodyId, rows) {
+  function renderTable(bodyId, rows, noDataMsg) {
     const tbody = document.getElementById(bodyId);
     if (!rows || rows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" class="no-data">No corporate actions found for this date.</td></tr>';
+      tbody.innerHTML = `<tr><td colspan="7" class="no-data">${noDataMsg || 'No data found.'}</td></tr>`;
       return;
     }
     tbody.innerHTML = rows.map((r, i) => `
@@ -301,22 +328,22 @@
       document.getElementById('spinner-a').classList.remove('show');
       document.getElementById('part-a-dates').textContent =
         data.part_a.dates.length ? data.part_a.dates[0] + ' → ' + data.part_a.dates.slice(-1)[0] : '';
-      renderTable('body-a', data.part_a.rows);
+      renderTable('body-a', data.part_a.rows, data.part_a.no_data_msg);
 
       // Part B - MY
       document.getElementById('spinner-my').classList.remove('show');
       document.querySelector('.tab-btn').textContent = `🇲🇾 Malaysia (${data.part_b_my.date})`;
-      renderTable('body-my', data.part_b_my.rows);
+      renderTable('body-my', data.part_b_my.rows, data.part_b_my.no_data_msg);
 
       // Part B - SG
       document.getElementById('spinner-sg').classList.remove('show');
       document.querySelectorAll('.tab-btn')[1].textContent = `🇸🇬 Singapore (${data.part_b_sg.date})`;
-      renderTable('body-sg', data.part_b_sg.rows);
+      renderTable('body-sg', data.part_b_sg.rows, data.part_b_sg.no_data_msg);
 
       // Part B - US
       document.getElementById('spinner-us').classList.remove('show');
       document.querySelectorAll('.tab-btn')[2].textContent = `🇺🇸 US Markets (${data.part_b_us.date})`;
-      renderTable('body-us', data.part_b_us.rows);
+      renderTable('body-us', data.part_b_us.rows, data.part_b_us.no_data_msg);
 
       document.getElementById('last-refreshed').textContent = 'Last refreshed: ' + data.timestamp;
 

@@ -22,7 +22,6 @@ def get_corporate_actions(trading_days: list[date]) -> list[dict]:
 
     for d in trading_days:
         date_str = d.strftime('%Y-%m-%d')
-        fetched = False
 
         for url_template in SGX_API_URLS:
             url = url_template.format(date=date_str)
@@ -31,7 +30,6 @@ def get_corporate_actions(trading_days: list[date]) -> list[dict]:
                 resp.raise_for_status()
                 data = resp.json()
 
-                # Try multiple response shapes
                 items = (
                     data.get('data', {}).get('items', [])
                     or data.get('items', [])
@@ -47,28 +45,16 @@ def get_corporate_actions(trading_days: list[date]) -> list[dict]:
                     if not any(t in action_type.lower() for t in ['bonus', 'split', 'consolidat']):
                         continue
                     results.append({
-                        'stock_code': item.get('stockCode', item.get('code', '—')),
-                        'company': item.get('companyName', item.get('name', '—')),
-                        'exchange': 'SGX',
-                        'ex_date': item.get('exDate', item.get('ex_date', date_str)),
+                        'stock_code':  item.get('stockCode', item.get('code', '—')),
+                        'company':     item.get('companyName', item.get('name', '—')),
+                        'exchange':    'SGX',
+                        'ex_date':     item.get('exDate', item.get('ex_date', date_str)),
                         'action_type': action_type or '—',
-                        'details': item.get('remarks', item.get('details', ''))[:120],
-                        'market': 'SGX',
+                        'details':     item.get('remarks', item.get('details', ''))[:120],
+                        'market':      'SGX',
                     })
-                fetched = True
                 break
             except Exception:
                 continue
-
-        if not fetched:
-            results.append({
-                'stock_code': '—',
-                'company': f'Unable to fetch SGX data for {date_str}',
-                'exchange': 'SGX',
-                'ex_date': date_str,
-                'action_type': '—',
-                'details': 'SGX API may have changed. No data available.',
-                'market': 'SGX',
-            })
 
     return results

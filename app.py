@@ -25,31 +25,32 @@ def index():
 def refresh():
     today = today_my()
 
-    # Part A: Bursa dividends — today + next 5 trading days (6 total)
-    part_a_days = get_trading_days_from(today, 'MY', 6)
-
-    # Part B dates
-    part_b_my_day = next_trading_day(today, 'MY')
-    part_b_sg_day = next_trading_day(today, 'SG')
-    part_b_us_day = today  # Use Malaysia local date for US lookup
+    part_a_days    = get_trading_days_from(today, 'MY', 6)
+    part_b_my_day  = next_trading_day(today, 'MY')
+    part_b_sg_day  = next_trading_day(today, 'SG')
+    part_b_us_day  = today
 
     data = {
         'timestamp': datetime.now(MY_TZ).strftime('%d %b %Y  %H:%M:%S'),
         'part_a': {
-            'dates': [d.strftime('%d %b %Y') for d in part_a_days],
-            'rows': get_dividends(part_a_days),
+            'dates':       [d.strftime('%d %b %Y') for d in part_a_days],
+            'rows':        get_dividends(part_a_days),
+            'no_data_msg': 'No special dividend / bonus for this period.',
         },
         'part_b_my': {
-            'date': part_b_my_day.strftime('%d %b %Y'),
-            'rows': bursa_corp([part_b_my_day]),
+            'date':        part_b_my_day.strftime('%d %b %Y'),
+            'rows':        bursa_corp([part_b_my_day]),
+            'no_data_msg': 'No CA - Bonus, SPLR &amp; SPLF for this date.',
         },
         'part_b_sg': {
-            'date': part_b_sg_day.strftime('%d %b %Y'),
-            'rows': sgx_corp([part_b_sg_day]),
+            'date':        part_b_sg_day.strftime('%d %b %Y'),
+            'rows':        sgx_corp([part_b_sg_day]),
+            'no_data_msg': 'No CA - Bonus, SPLR &amp; SPLF for this date.',
         },
         'part_b_us': {
-            'date': part_b_us_day.strftime('%d %b %Y'),
-            'rows': us_corp([part_b_us_day]),
+            'date':        part_b_us_day.strftime('%d %b %Y'),
+            'rows':        us_corp([part_b_us_day]),
+            'no_data_msg': 'No CA - Split, Reverse Split or Name Change for this date.',
         },
     }
     return jsonify(data)

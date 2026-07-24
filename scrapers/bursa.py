@@ -90,14 +90,9 @@ def get_dividends(trading_days: list[date]) -> list[dict]:
     date_to   = trading_days[-1].strftime('%Y-%m-%d')
     try:
         rows = _fetch_dividends_i3(date_from, date_to)
-        if rows:
-            return rows
-        return [{'stock_code': '—', 'company': 'No upcoming dividends found for this period.',
-                 'exchange': 'Bursa Malaysia', 'ex_date': '—', 'action_type': '—', 'details': '', 'market': 'Bursa'}]
-    except Exception as e:
-        return [{'stock_code': '—', 'company': f'Error: {e}',
-                 'exchange': 'Bursa Malaysia', 'ex_date': '—', 'action_type': '—',
-                 'details': 'Could not reach data source.', 'market': 'Bursa'}]
+        return rows
+    except Exception:
+        return []
 
 
 def get_corporate_actions(trading_days: list[date]) -> list[dict]:
@@ -106,12 +101,6 @@ def get_corporate_actions(trading_days: list[date]) -> list[dict]:
     date_from = trading_days[0].strftime('%Y-%m-%d')
     date_to   = trading_days[-1].strftime('%Y-%m-%d')
     try:
-        rows = _fetch_corp_actions_i3(date_from, date_to)
-        if rows:
-            return rows
-        return [{'stock_code': '—', 'company': 'No corporate actions found for this date.',
-                 'exchange': 'Bursa Malaysia', 'ex_date': '—', 'action_type': '—', 'details': '', 'market': 'Bursa'}]
-    except Exception as e:
-        return [{'stock_code': '—', 'company': f'Error: {e}',
-                 'exchange': 'Bursa Malaysia', 'ex_date': '—', 'action_type': '—',
-                 'details': 'Could not reach data source.', 'market': 'Bursa'}]
+        return _fetch_corp_actions_i3(date_from, date_to)
+    except Exception:
+        return []

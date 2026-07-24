@@ -43,7 +43,7 @@ def _get_nasdaq_splits(date_str: str) -> list[dict]:
         results.append({
             'stock_code': row.get('symbol', '—'),
             'company': row.get('name', '—'),
-            'exchange': row.get('exchange', 'US'),
+            'exchange': row.get('exchange', 'NASDAQ'),
             'ex_date': date_str,
             'action_type': _determine_action_type(ratio),
             'details': f'Ratio: {ratio}',
@@ -68,7 +68,7 @@ def _get_nasdaq_name_changes(date_str: str) -> list[dict]:
             results.append({
                 'stock_code': '—',
                 'company': src.get('entity_name', '—'),
-                'exchange': 'US',
+                'exchange': 'SEC/EDGAR',
                 'ex_date': src.get('period_of_report', date_str),
                 'action_type': 'Name Change',
                 'details': f'Filed: {src.get("file_date", date_str)}',
