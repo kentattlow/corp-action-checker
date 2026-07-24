@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Corporate Action Monitoring</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      color: #1a2332;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #0d3b6e;
+      color: #fff;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    header h1 { font-size: 1.25rem; font-weight: 600; letter-spacing: 0.5px; }
+
+    .header-right { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+
+    #clock {
+      font-size: 0.95rem;
+      background: rgba(255,255,255,0.12);
+      padding: 5px 12px;
+      border-radius: 6px;
+      min-width: 200px;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    #btn-refresh {
+      background: #f0a500;
+      color: #1a2332;
+      border: none;
+      padding: 8px 22px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #btn-refresh:hover { background: #ffc030; }
+    #btn-refresh:disabled { background: #888; color: #ccc; cursor: default; }
+
+    #last-refreshed {
+      font-size: 0.8rem;
+      color: #aac6e6;
+      white-space: nowrap;
+    }
+
+    /* ── Main content ── */
+    main { padding: 20px 24px; }
+
+    .section { background: #fff; border-radius: 10px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); overflow: hidden; }
+
+    .section-header {
+      background: #1a5fa8;
+      color: #fff;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .section-header h2 { font-size: 0.95rem; font-weight: 600; }
+    .section-header .date-range { font-size: 0.8rem; color: #b8d4f0; }
+
+    /* Part B tabs */
+    .tabs { display: flex; border-bottom: 2px solid #e0e8f0; background: #f7fafd; }
+    .tab-btn {
+      padding: 9px 22px;
+      border: none;
+      background: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #5a7a9a;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.15s;
+    }
+    .tab-btn.active { color: #0d3b6e; border-bottom-color: #1a5fa8; }
+    .tab-btn:hover:not(.active) { color: #1a5fa8; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    thead th {
+      background: #e8f0fa;
+      color: #0d3b6e;
+      font-weight: 700;
+      padding: 9px 12px;
+      text-align: left;
+      white-space: nowrap;
+      border-bottom: 2px solid #c5d8f0;
+    }
+    tbody tr { border-bottom: 1px solid #edf2f8; }
+    tbody tr:hover { background: #f5f9ff; }
+    tbody td { padding: 8px 12px; vertical-align: top; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .badge-div    { background: #d4edda; color: #155724; }
+    .badge-bonus  { background: #cce5ff; color: #004085; }
+    .badge-split  { background: #fff3cd; color: #856404; }
+    .badge-rev    { background: #f8d7da; color: #721c24; }
+    .badge-name   { background: #e2d9f3; color: #4a235a; }
+    .badge-other  { background: #f1f3f5; color: #495057; }
+
+    .no-data { text-align: center; color: #8a9ab0; padding: 28px; font-size: 0.9rem; }
+
+    /* Loading spinner */
+    .spinner {
+      display: none;
+      text-align: center;
+      padding: 28px;
+      color: #5a7a9a;
+      font-size: 0.9rem;
+    }
+    .spinner.show { display: block; }
+    .spinner::before { content: '⏳ '; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Corporate Action Monitoring &nbsp;|&nbsp; Bursa MY · SGX SG · US Markets</h1>
+  <div class="header-right">
+    <div id="clock">Loading clock…</div>
+    <button id="btn-refresh" onclick="refresh()">&#x21BB;&nbsp; Refresh</button>
+    <span id="last-refreshed">Not refreshed yet</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- ─── Part A ─── -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Bursa Special Dividend / Bonus</h2>
+      <span class="date-range" id="part-a-dates">Today + next 5 trading days</span>
+    </div>
+    <div id="spinner-a" class="spinner">Fetching data…</div>
+    <div class="table-wrap">
+      <table id="table-a">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Stock Code</th>
+            <th>Company Name</th>
+            <th>Exchange</th>
+            <th>Ex-Date</th>
+            <th>Corporate Action Type</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody id="body-a"><tr><td colspan="7" class="no-data">Press Refresh to load data</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─── Part B ─── -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Corporate Action for US, MY &amp; SG</h2>
+      <span class="date-range" id="part-b-subtitle">Select a market tab below</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('my', this)">🇲🇾 Malaysia (Next Trading Day)</button>
+      <button class="tab-btn" onclick="switchTab('sg', this)">🇸🇬 Singapore (Next Trading Day)</button>
+      <button class="tab-btn" onclick="switchTab('us', this)">🇺🇸 US Markets (Today)</button>
+    </div>
+
+    <!-- MY Tab -->
+    <div id="tab-my" class="tab-content active">
+      <div id="spinner-my" class="spinner">Fetching data…</div>
+      <div class="table-wrap">
+        <table><thead><tr>
+          <th>#</th><th>Stock Code</th><th>Company Name</th><th>Action Type</th><th>Ex-Date</th><th>Details</th>
+        </tr></thead>
+        <tbody id="body-my"><tr><td colspan="7" class="no-data">Press Refresh to load data</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SG Tab -->
+    <div id="tab-sg" class="tab-content">
+      <div id="spinner-sg" class="spinner">Fetching data…</div>
+      <div class="table-wrap">
+        <table><thead><tr>
+          <th>#</th><th>Stock Code</th><th>Company Name</th><th>Action Type</th><th>Ex-Date</th><th>Details</th>
+        </tr></thead>
+        <tbody id="body-sg"><tr><td colspan="7" class="no-data">Press Refresh to load data</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- US Tab -->
+    <div id="tab-us" class="tab-content">
+      <div id="spinner-us" class="spinner">Fetching data…</div>
+      <div class="table-wrap">
+        <table><thead><tr>
+          <th>#</th><th>Stock Code</th><th>Company Name</th><th>Action Type</th><th>Ex-Date</th><th>Details</th>
+        </tr></thead>
+        <tbody id="body-us"><tr><td colspan="7" class="no-data">Press Refresh to load data</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // ── Live clock ──
+  function updateClock() {
+    const now = new Date();
+    const opts = { timeZone: 'Asia/Kuala_Lumpur', year: 'numeric', month: 'short',
+                   day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+    document.getElementById('clock').textContent = now.toLocaleString('en-GB', opts) + ' (MYT)';
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ── Tab switching ──
+  function switchTab(market, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + market).classList.add('active');
+  }
+
+  // ── Badge helper ──
+  function badge(type) {
+    const t = (type || '').toLowerCase();
+    if (t.includes('dividend') || t.includes('div')) return `<span class="badge badge-div">${type}</span>`;
+    if (t.includes('bonus'))    return `<span class="badge badge-bonus">${type}</span>`;
+    if (t.includes('reverse') || t.includes('consolidat')) return `<span class="badge badge-rev">${type}</span>`;
+    if (t.includes('split'))    return `<span class="badge badge-split">${type}</span>`;
+    if (t.includes('name'))     return `<span class="badge badge-name">${type}</span>`;
+    return `<span class="badge badge-other">${type}</span>`;
+  }
+
+  // ── Render table ──
+  function renderTable(bodyId, rows) {
+    const tbody = document.getElementById(bodyId);
+    if (!rows || rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="no-data">No corporate actions found for this date.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map((r, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td><strong>${r.stock_code}</strong></td>
+        <td>${r.company}</td>
+        <td>${r.exchange || '—'}</td>
+        <td>${r.ex_date}</td>
+        <td>${badge(r.action_type)}</td>
+        <td>${r.details}</td>
+      </tr>`).join('');
+  }
+
+  // ── Refresh ──
+  async function refresh() {
+    const btn = document.getElementById('btn-refresh');
+    btn.disabled = true;
+    btn.textContent = '⏳ Loading…';
+
+    // Show spinners
+    ['a','my','sg','us'].forEach(id => {
+      document.getElementById('spinner-' + id).classList.add('show');
+      const tbody = document.getElementById('body-' + id);
+      if (tbody) tbody.innerHTML = '';
+    });
+
+    try {
+      const resp = await fetch('/api/refresh');
+      const data = await resp.json();
+
+      // Part A
+      document.getElementById('spinner-a').classList.remove('show');
+      document.getElementById('part-a-dates').textContent =
+        data.part_a.dates.length ? data.part_a.dates[0] + ' → ' + data.part_a.dates.slice(-1)[0] : '';
+      renderTable('body-a', data.part_a.rows);
+
+      // Part B - MY
+      document.getElementById('spinner-my').classList.remove('show');
+      document.querySelector('.tab-btn').textContent = `🇲🇾 Malaysia (${data.part_b_my.date})`;
+      renderTable('body-my', data.part_b_my.rows);
+
+      // Part B - SG
+      document.getElementById('spinner-sg').classList.remove('show');
+      document.querySelectorAll('.tab-btn')[1].textContent = `🇸🇬 Singapore (${data.part_b_sg.date})`;
+      renderTable('body-sg', data.part_b_sg.rows);
+
+      // Part B - US
+      document.getElementById('spinner-us').classList.remove('show');
+      document.querySelectorAll('.tab-btn')[2].textContent = `🇺🇸 US Markets (${data.part_b_us.date})`;
+      renderTable('body-us', data.part_b_us.rows);
+
+      document.getElementById('last-refreshed').textContent = 'Last refreshed: ' + data.timestamp;
+
+    } catch (err) {
+      alert('Error fetching data: ' + err.message);
+      ['a','my','sg','us'].forEach(id =>
+        document.getElementById('spinner-' + id).classList.remove('show'));
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '&#x21BB;&nbsp; Refresh';
+  }
+
+  // Auto-refresh on page load
+  window.addEventListener('load', refresh);
+</script>
+</body>
+</html>

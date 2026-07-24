@@ -1,0 +1,7 @@
+flask
+requests
+beautifulsoup4
+holidays
+pytz
+lxml
+gunicorn

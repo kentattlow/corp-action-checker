@@ -1,0 +1,48 @@
+====================================================
+  CORPORATE ACTION CHECKER  —  Setup Instructions
+====================================================
+
+STEP 1: Open Command Prompt
+   Press  Windows Key + R
+   Type:  cmd
+   Press  Enter
+
+STEP 2: Go to the project folder
+   Type this and press Enter:
+   cd C:\Users\kenlow\corp-action-checker
+
+STEP 3: Install required packages (do this ONCE only)
+   Type this and press Enter:
+   pip install flask requests beautifulsoup4 holidays pytz lxml
+
+   Wait for it to finish (may take 1–2 minutes).
+
+STEP 4: Start the website
+   Type this and press Enter:
+   python app.py
+
+   You will see:
+     Corporate Action Checker is running.
+     Open your browser and go to:  http://localhost:5000
+
+STEP 5: Open your browser
+   Go to:  http://localhost:5000
+   The website will load and auto-refresh data.
+
+STEP 6: Use the website
+   - Click "Refresh" button to get the latest data
+   - The clock shows Malaysia time (MYT)
+   - Part A tab = Bursa dividends (today + next 5 trading days)
+   - Part B tabs = Corporate actions for MY / SG / US
+
+====================================================
+  TO STOP THE SERVER:  press Ctrl + C in Command Prompt
+  TO START AGAIN:      go to Step 4
+====================================================
+
+SHARING WITH TEAMMATES (same network):
+   When the server is running, teammates on the same
+   Wi-Fi/network can access it by typing your IP address:
+   http://YOUR-IP-ADDRESS:5000
+   (Find your IP: open cmd and type  ipconfig)
+====================================================
