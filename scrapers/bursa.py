@@ -2,16 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import date
 
-HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Language': 'en-US,en;q=0.5',
-}
-
-# Announcement type codes used by Bursa Malaysia's filter
-DIVIDEND_TYPES = ['DI', 'DE', 'SD', 'FD', 'BD']   # dividend-related
-CORP_ACTION_TYPES = ['BI', 'SS', 'SC', 'RS']        # bonus, split, consolidation
-
 ACTION_LABEL = {
     'DI': 'Dividend',
     'DE': 'Dividend Entitlement',
@@ -24,21 +14,46 @@ ACTION_LABEL = {
     'RS': 'Reverse Split',
 }
 
+DIVIDEND_TYPES = ['DI', 'DE', 'SD', 'FD', 'BD']
+CORP_ACTION_TYPES = ['BI', 'SS', 'SC', 'RS']
+
+
+def _make_session():
+    session = requests.Session()
+    session.headers.update({
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1',
+        'Cache-Control': 'max-age=0',
+    })
+    # Load main page first to get Cloudflare cookies
+    try:
+        session.get('https://www.bursamalaysia.com/', timeout=15)
+    except Exception:
+        pass
+    return session
+
 
 def _fetch_announcements(date_from, date_to, ann_types):
-    """Fetch Bursa corporate action announcements for a date range and action types."""
     results = []
+    session = _make_session()
+
     for ann_type in ann_types:
         url = (
             'https://www.bursamalaysia.com/market_information/announcements/company_announcement'
             f'?ann_type={ann_type}&date_from={date_from}&date_to={date_to}&per_page=100&page=1'
         )
         try:
-            resp = requests.get(url, headers=HEADERS, timeout=15)
+            resp = session.get(url, timeout=15)
             resp.raise_for_status()
             soup = BeautifulSoup(resp.text, 'lxml')
-
-            # Bursa's announcement table rows
             rows = soup.select('table tbody tr')
             for row in rows:
                 cols = row.find_all('td')
@@ -56,18 +71,17 @@ def _fetch_announcements(date_from, date_to, ann_types):
         except Exception as e:
             results.append({
                 'stock_code': '—',
-                'company': f'Error fetching {ann_type}: {e}',
+                'company': f'Unable to fetch Bursa data ({ACTION_LABEL.get(ann_type, ann_type)}): {e}',
                 'exchange': 'Bursa Malaysia',
                 'ex_date': '—',
-                'action_type': ann_type,
-                'details': 'Check scrapers/bursa.py',
+                'action_type': ACTION_LABEL.get(ann_type, ann_type),
+                'details': 'Bursa website may be blocking automated access. Try refreshing.',
                 'market': 'Bursa',
             })
     return results
 
 
 def get_dividends(trading_days: list[date]) -> list[dict]:
-    """Part A: special dividends, bonus, share dividends for given ex-dates."""
     if not trading_days:
         return []
     date_from = trading_days[0].strftime('%Y-%m-%d')
@@ -76,7 +90,6 @@ def get_dividends(trading_days: list[date]) -> list[dict]:
 
 
 def get_corporate_actions(trading_days: list[date]) -> list[dict]:
-    """Part B: bonus, split, reverse split for given ex-dates."""
     if not trading_days:
         return []
     date_from = trading_days[0].strftime('%Y-%m-%d')
